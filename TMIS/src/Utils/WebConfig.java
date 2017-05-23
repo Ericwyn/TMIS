@@ -6,7 +6,7 @@ package Utils;
  */
 public class WebConfig {
     //教务系统主页
-    public static final String Main_Url="http://ericwyn.jios.org";
+    public static final String Main_Url="http://10.50.17.21";
     //验证码请求页面
     public static final String SECRETCODE_URL=Main_Url+"/CheckCode.aspx";
     //登录页面

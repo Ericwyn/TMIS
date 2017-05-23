@@ -29,18 +29,24 @@ import java.util.Scanner;
  */
 public class Web {
     private static String stuNum;
-    private static String stuPassword;
-    private static String Cookie = "";
+    //所有方法公用的CloseableHttpClient
     private static CloseableHttpClient client= HttpClients.createDefault();
 
 
-    //登录的方法
-    public static void login(String stuNum,String password) throws Exception{
+    /**
+     * 模拟登录的方法，处理之后CloseableHttpClient不会关闭
+     * @param stuNum    学生学号
+     * @param password  登录密码
+     * @return          返回cookie
+     * @throws Exception    异常
+     */
+    public static String login(String stuNum,String password) throws Exception{
+        String Cookie = "";
         //记录学生学号
         Web.stuNum=stuNum;
         //获取验证码
         HttpGet secretCodeGet=new HttpGet(WebConfig.SECRETCODE_URL);
-        CloseableHttpClient client= HttpClients.createDefault();
+//        CloseableHttpClient client= HttpClients.createDefault();
         CloseableHttpResponse responseSecret=client.execute(secretCodeGet);
         //获取验证码的Cookie
         Cookie =responseSecret.getFirstHeader("Set-Cookie").getValue();
@@ -65,7 +71,7 @@ public class Web {
         nameValuePairLogin.add(new BasicNameValuePair("imgDL.x","198"));    //+(int)(Math.random()*300+3)));
         nameValuePairLogin.add(new BasicNameValuePair("imgDL.y","23"));     //+(int)(Math.random()*30+3)));
         loginPost.setHeader("Cookie",Cookie);
-        loginPost.setHeader("User-Agent","Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36");
+//        loginPost.setHeader("User-Agent","Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36");
 
         UrlEncodedFormEntity entity = new UrlEncodedFormEntity(
                 nameValuePairLogin, "GB2312");
@@ -75,26 +81,60 @@ public class Web {
 
         if (responseLogin.getStatusLine().getStatusCode() == 302) {
 //            System.out.println(responseLogin.toString());
-            HttpGet mainGet = new HttpGet(WebConfig.CHECK_SCORE_URL+stuNum);
-            mainGet.setHeader("Cookie", Cookie);
-            mainGet.setHeader("Referer", WebConfig.Main_Url+"/xsleft.aspx?flag=xxcx");
-            HttpResponse responseMain = client.execute(mainGet);
-            InputStream is = responseMain.getEntity().getContent();
-            String html = "";
-            try {
-                html = getHtml(is, "GB2312");
-                System.out.println(html);
-            } catch (Exception e) {
-                System.out.println("解析html失败！");
-                e.printStackTrace();
-            }
-            client.close();
+//            HttpGet mainGet = new HttpGet(WebConfig.CHECK_SCORE_URL+stuNum);
+//            mainGet.setHeader("Cookie", Cookie);
+//            mainGet.setHeader("Referer", WebConfig.Main_Url+"/xsleft.aspx?flag=xxcx");
+//            HttpResponse responseMain = client.execute(mainGet);
+//            InputStream is = responseMain.getEntity().getContent();
+//            String html = "";
+//            try {
+//                html = getHtml(is, "GB2312");
+//                System.out.println(html);
+//            } catch (Exception e) {
+//                System.out.println("解析html失败！");
+//                e.printStackTrace();
+//            }
+            return Cookie;
         } else {
             System.out.println("登录失败！");
-            client.close();
+            return null;
         }
+    }
 
+    /**
+     * 使用同一个CloseableHttpClient，带上Cookie查询成绩
+     * @param cookie    由模拟登录得来的cookie
+     * @throws Exception    IO异常
+     */
+    public static void getScore(String cookie) throws Exception{
+        HttpGet mainGet = new HttpGet(WebConfig.CHECK_SCORE_URL+stuNum);
+        mainGet.setHeader("Cookie", cookie);
+        mainGet.setHeader("Referer", WebConfig.Main_Url+"/xsleft.aspx?flag=xxcx");
+        HttpResponse responseMain = client.execute(mainGet);
+        InputStream is = responseMain.getEntity().getContent();
+        String html = "";
+        try {
+            html = getHtml(is, "GB2312");
+            String chengji= Jsoup.parse(html).getElementById("DataGrid1").text().replace("学年 学期 课程名称 课程类型 任课教师 考核方式 总评成绩 补考成绩 重修成绩 重修成绩2 重修成绩3 绩点 应得学分 ","");
+            String zhongxuefen= Jsoup.parse(html).getElementById("Table1").text();
+            System.out.println(chengji);
+            System.out.println(zhongxuefen);
+//            System.out.println(chengji);
+        } catch (Exception e) {
+            System.out.println("解析html失败！");
+            e.printStackTrace();
+        }
+    }
 
+    /**
+     * 单独的client关闭方法
+     */
+    public static void closeClient(){
+        try {
+            client.close();
+        }catch (IOException e){
+            e.printStackTrace();
+        }
     }
 
     public static String get__VIEWSTATE(String url,int val) throws IOException {

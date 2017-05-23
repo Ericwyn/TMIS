@@ -7,8 +7,12 @@ import Utils.Web;
  */
 public class Main {
     public static void main(String[] args) throws Exception{
-        Web.login(Pw.stuNum,Pw.stuPw);
-        YanZhenUtil.getAllOcr("/media/ericwyn/Work/Chaos/IntiliJ Java Project/GdpuCheck/secCode/secretCode");
+        String cookie=null;
+        if((cookie=Web.login(Pw.stuNum,Pw.stuPw))!=null){
+            Web.getScore(cookie);
+        }
+
+        Web.closeClient();
     }
 
 }
