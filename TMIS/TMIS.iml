@@ -7,25 +7,24 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module-library" exported="">
+    <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="file://$MODULE_DIR$/../../../Api Lib/someLibrary/httpcomponents-client-4.5.3/lib" />
+          <root url="file://$MODULE_DIR$/../../../../Api Lib/someLibrary/httpcomponents-client-4.5.3/lib" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
-        <jarDirectory url="file://$MODULE_DIR$/../../../Api Lib/someLibrary/httpcomponents-client-4.5.3/lib" recursive="false" />
+        <jarDirectory url="file://$MODULE_DIR$/../../../../Api Lib/someLibrary/httpcomponents-client-4.5.3/lib" recursive="false" />
       </library>
     </orderEntry>
-    <orderEntry type="module-library" exported="">
+    <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../Api Lib/someLibrary/jsoup/jsoup-1.10.2.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../../../Api Lib/someLibrary/jsoup/jsoup-1.10.2.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
       </library>
     </orderEntry>
-    <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
   </component>
 </module>
