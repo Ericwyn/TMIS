@@ -6,6 +6,7 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.message.BasicNameValuePair;
@@ -30,7 +31,8 @@ public class Web {
      * 模拟登录的方法，处理之后CloseableHttpClient不会关闭
      * @param stuNum    学生学号
      * @param password  登录密码
-     * @return          返回cookie
+     * @return          返回cookie，或者状态代码，1是代表密码错误，2是代表用户不存在
+     *                      验证码错误？不存在的～会自动重新链接，然后获取一个新的验证码。
      * @throws Exception    异常
      */
     public String login(String stuNum,String password){
@@ -50,7 +52,7 @@ public class Web {
                 WebUtils.getSecret(responseSecret.getEntity().getContent(),"secretCode","secCode");
 
                 String secret=YanZhenUtil.getAllOcr("secCode/secretCode");
-
+//                String secret="XXXX";
                 HttpPost loginPost=new HttpPost(WebConfig.LOGIN_URL);
 
 
@@ -73,6 +75,17 @@ public class Web {
 
                 if (responseLogin.getStatusLine().getStatusCode() == 302) {
                     break;
+                }else {
+                    String fanuhi=new BasicResponseHandler().handleResponse(responseLogin);
+
+                    if(fanuhi.contains("密码不正确")){
+//                        System.out.println("密码不正确");
+                        return "1";
+                    }else if (fanuhi.contains("用户不存在")){
+//                        System.out.println("学号输入错误");
+                        return "2";
+                    }
+
                 }
             }catch (Exception e){
                 e.printStackTrace();
@@ -87,27 +100,35 @@ public class Web {
      * @param cookie    由模拟登录得来的cookie
      * @throws Exception    IO异常
      */
-    public void getScore(String cookie) throws Exception{
-        HttpGet mainGet = new HttpGet(WebConfig.CHECK_SCORE_URL+stuNum);
-        mainGet.setHeader("Cookie", cookie);
-        mainGet.setHeader("Referer", WebConfig.Main_Url+"/xsleft.aspx?flag=xxcx");
-        HttpResponse responseMain = client.execute(mainGet);
-        InputStream is = responseMain.getEntity().getContent();
-        String html = "";
-        try {
-            html = WebUtils.getHtml(is, "GB2312");
-            String chengji= Jsoup.parse(html).getElementById("DataGrid1").text().replace("学年 学期 课程名称 课程类型 任课教师 考核方式 总评成绩 补考成绩 重修成绩 重修成绩2 重修成绩3 绩点 应得学分 ","");
-            String zhongxuefen= Jsoup.parse(html).getElementById("Table1").text();
+    public void getScore(String cookie){
+        for (int i=0;i<5;i++){
+            try {
+                HttpGet mainGet = new HttpGet(WebConfig.CHECK_SCORE_URL+stuNum);
+                mainGet.setHeader("Cookie", cookie);
+                mainGet.setHeader("Referer", WebConfig.Main_Url+"/xsleft.aspx?flag=xxcx");
+                HttpResponse responseMain = client.execute(mainGet);
+                InputStream is = responseMain.getEntity().getContent();
+                String html = "";
+                try {
+                    html = WebUtils.getHtml(is, "GB2312");
+                    String chengji= Jsoup.parse(html).getElementById("DataGrid1").text().replace("学年 学期 课程名称 课程类型 任课教师 考核方式 总评成绩 补考成绩 重修成绩 重修成绩2 重修成绩3 绩点 应得学分 ","");
+                    String zhongxuefen= Jsoup.parse(html).getElementById("Table1").text();
 
 //            String[] strs=chengji.split("201[0-9]-201[0-9]");
 
-
-            System.out.println(zhongxuefen);
-            System.out.println(chengji);
-        } catch (Exception e) {
-            System.out.println("解析html失败！");
-            e.printStackTrace();
+                    System.out.println(zhongxuefen);
+                    System.out.println(chengji);
+                    break;
+                } catch (Exception e) {
+                    System.out.println("解析html失败！");
+                    e.printStackTrace();
+                }
+            }catch (IOException e){
+                continue;
+            }
         }
+
+
     }
 
     /**
