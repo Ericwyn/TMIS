@@ -7,12 +7,11 @@ import Utils.Web;
  */
 public class Main {
     public static void main(String[] args) throws Exception{
+        Web web=new Web();
         String cookie=null;
-        if((cookie=Web.login(Pw.stuNum,Pw.stuPw))!=null){
-            Web.getScore(cookie);
-        }
-
-        Web.closeClient();
+        cookie=web.login(Pw.stuNum,Pw.stuPw);
+        System.out.println(cookie);
+        web.getScore(cookie);
+        web.closeClient();
     }
-
 }
